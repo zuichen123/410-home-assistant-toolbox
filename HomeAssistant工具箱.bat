@@ -265,6 +265,8 @@ goto main
 echo 正在获取日志文件……
 !ADB! shell "systemctl status homeassistant -l" > log.txt
 echo 获取完成！日志已保存在脚本目录下的log.txt中！
+echo 日志文件已复制到剪贴板，直接粘贴即可发送！
+clip < log.txt
 pause
 goto main
 
@@ -399,9 +401,11 @@ set sure=n
 echo 尝试获取ip
 echo 设备IP是:
 echo.
-adb shell "ifconfig | grep -oE 'inet [0-9\.]+' | grep -oE '[0-9\.]+' | grep -vE '^127\.0\.0\.1$|^192\.168\.68\.1$'"
+!ADB! shell "ifconfig | grep -oE 'inet [0-9\.]+' | grep -oE '[0-9\.]+' | grep -vE '^127\.0\.0\.1$|^192\.168\.68\.1$'"
+!ADB! shell "ifconfig | grep -oE 'inet [0-9\.]+' | grep -oE '[0-9\.]+' | grep -vE '^127\.0\.0\.1$|^192\.168\.68\.1$' | sed 's/.*/http:\/\/&:8123/'" | clip
 echo.
-echo 如果看到192.168开头的ip地址说明成功，如果没有按回车可以再尝试一次，获取到之后记下IP就可以关闭脚本了
+echo 已尝试将正确HomeAssistant网址复制到剪贴板，在浏览器粘贴即可访问
+echo 如果看到ip地址说明成功，如果没有按回车可以再尝试一次，获取到之后记下IP就可以关闭脚本了
 pause
 goto main
 
