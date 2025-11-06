@@ -457,6 +457,7 @@ echo 正在推送压缩包...
 !ADB! shell "mkdir -p /root/.homeassistant/custom_components/bambu_lab" > nul
 !ADB! shell "mkdir -p /root/.homeassistant/custom_components/xiaomi_home" > nul
 !ADB! push !BIN_DIR!\!CUSTOM_BAMBU_NAME! /root/.homeassistant/custom_components/bambu_lab/ >nul
+!ADB! push !BIN_DIR!\!CUSTOM_XIAOMI_NAME! /root/.homeassistant/custom_components/xiaomi_home/ >nul
 echo 推送完成！
 echo 正在解压...
 !ADB! shell "unzip -o -q /root/.homeassistant/custom_components/xiaomi_home/*"
