@@ -3,9 +3,6 @@
 reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
 setlocal enabledelayedexpansion
 
-:: ########## 获取当前时间 ###########
-
-
 :: ########## 版本号和更新配置 ##########
 set "version=v1.0.2"
 :: Gitee仓库的 "所有者/仓库名"
@@ -135,6 +132,8 @@ if "!DOWNLOAD_URL!"=="" (
 
 echo 正在从以下地址下载新版本:
 echo !DOWNLOAD_URL!
+echo 此地址已复制到剪贴板，如果下载失败可以用浏览器手动下载
+clip < !DOWNLOAD_URL!
 echo.
 
 :: 使用 PowerShell 下载新脚本
@@ -187,7 +186,8 @@ echo 5.查看HomeAssistant账号
 echo 6.获取HomeAssistant日志
 echo 7.重启HomeAssistant
 echo 8.重置HomeAssistant
-echo 9.高级功能(一般情况不用进)
+echo 9.添加bambu_lab和xiaomi_home集成
+echo 10.高级功能(一般情况不用进)
 
 set /p "choice=请输入对应数字:"
 if "!choice!"=="1" goto connectwifi
@@ -198,7 +198,8 @@ if "!choice!"=="5" goto listaccount
 if "!choice!"=="6" goto getlog
 if "!choice!"=="7" goto restartha
 if "!choice!"=="8" goto harecovery
-if "!choice!"=="9" goto flash
+if "!choice!"=="9" goto pushcustom_main
+if "!choice!"=="10" goto flash
 goto error
 
 :changeaccount
@@ -279,7 +280,14 @@ set /p "sure=请输入(y/n):"
 if /i "%sure%" NEQ "y" goto main
 set sure=n
 echo.
-!ADB! shell "rm -rf /root/.homeassistant/home-assistant_v2.db"
+echo 正在关闭HomeAssistant...
+!ADB! shell "systemctl stop homeassistant"
+echo.
+echo 已关闭HomeAssistant
+echo.
+echo 正在重置...
+!ADB! shell "rm -rf /root/.homeassistant"
+call :pushcustom
 echo 已重置！已无法复原！正在重启HomeAssistant...
 !ADB! shell "systemctl restart homeassistant"
 echo HomeAssistant已重启！请等待数分钟后重新进入HomeAssistant网页端！
@@ -416,8 +424,25 @@ pause
 goto main
 
 :GetTime
-    setlocal
-    :: 假设 %date% 格式为 YYYY/MM/DD 或 YYYY-MM-DD，%time% 格式为 HH:MM:SS.ms
-    set "dt=%date:~2,2%-%date:~5,2%-%date:~8,2%-%time:~0,2%%time:~3,2%"
-    endlocal & set "%~1=!dt!"
-    goto :eof
+setlocal
+:: 假设 %date% 格式为 YYYY/MM/DD 或 YYYY-MM-DD，%time% 格式为 HH:MM:SS.ms
+set "dt=%date:~2,2%-%date:~5,2%-%date:~8,2%-%time:~0,2%%time:~3,2%"
+endlocal & set "%~1=!dt!"
+goto :eof
+
+:pushcustom
+echo 正在推送压缩包...
+!ADB! shell "mkdir -p /root/.homeassistant/custom_components/bambu_lab" > nul
+!ADB! shell "mkdir -p /root/.homeassistant/custom_components/xiaomi_home" > nul
+!ADB! push !BIN_DIR!\bambu_lab.zip /root/.homeassistant/custom_components/bambu_lab/ >nul
+!ADB! push !BIN_DIR!\xiaomi_home.zip /root/.homeassistant/custom_components/xiaomi_home/ >nul
+echo 推送完成！
+echo 正在解压...
+!ADB! shell "unzip -o -q /root/.homeassistant/custom_components/xiaomi_home/*"
+!ADB! shell "unzip -o -q /root/.homeassistant/custom_components/bambu_lab/*"
+echo 解压完成！
+exit /b 0
+
+:pushcustom_main
+call :pushcustom
+goto main
