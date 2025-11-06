@@ -186,7 +186,8 @@ echo 4.创建HomeAssistant账号
 echo 5.查看HomeAssistant账号
 echo 6.获取HomeAssistant日志
 echo 7.重启HomeAssistant
-echo 8.高级功能(一般情况不用进)
+echo 8.重置HomeAssistant
+echo 9.高级功能(一般情况不用进)
 
 set /p "choice=请输入对应数字:"
 if "!choice!"=="1" goto connectwifi
@@ -196,7 +197,8 @@ if "!choice!"=="4" goto creataccount
 if "!choice!"=="5" goto listaccount
 if "!choice!"=="6" goto getlog
 if "!choice!"=="7" goto restartha
-if "!choice!"=="8" goto flash
+if "!choice!"=="8" goto harecovery
+if "!choice!"=="9" goto flash
 goto error
 
 :changeaccount
@@ -263,6 +265,22 @@ goto main
 echo 正在获取日志文件……
 !ADB! shell "systemctl status homeassistant -l" > log.txt
 echo 获取完成！日志已保存在脚本目录下的log.txt中！
+pause
+goto main
+
+:harecovery
+cls
+echo 你真的要恢复HomeAssistant为初始状态吗？
+echo 注意！这个操作无法撤销！
+echo HomeAssistant将恢复为初始状态，所有配置将丢失！
+set /p "sure=请输入(y/n):"
+if /i "%sure%" NEQ "y" goto main
+set sure=n
+echo.
+!ADB! shell "rm -rf /root/.homeassistant/home-assistant_v2.db"
+echo 已重置！已无法复原！正在重启HomeAssistant...
+!ADB! shell "systemctl restart homeassistant"
+echo HomeAssistant已重启！请等待数分钟后重新进入HomeAssistant网页端！
 pause
 goto main
 
