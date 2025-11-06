@@ -169,6 +169,7 @@ echo 请访问http://zuichen.top:2043
 echo 注意：410版号不同刷入方法也不同，不可选错
 echo 主意：此刷机包使用前需要先刷入debian底包
 echo 在使用此脚本前请先打开棒子的adb，打开方式并不统一
+echo 本工具箱开源地址:https://gitee.com/zuichen/410-home-assistant-toolbox
 echo ==================================================================================
 echo.
 echo HomeAssistant默认账号:bambulab   默认密码:bambulab
