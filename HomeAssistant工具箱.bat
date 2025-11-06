@@ -43,8 +43,9 @@ if not exist "!FASTBOOT!" (
 )
 if not exist "!IMG_DIR!" (
     echo 错误：未找到 img 文件夹，路径：!IMG_DIR!
-    pause
-    exit /b 1
+    echo 将无法使用相关高级功能
+    echo 3秒后继续...
+    timeout /t 3 /nobreak >nul
 )
 
 :: ########## 跳转到更新检查 ##########
