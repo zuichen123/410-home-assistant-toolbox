@@ -21,6 +21,11 @@ set "BASE_DIR=!SCRIPT_DIR!base"
 set "ADB=!BIN_DIR!\adb.exe"
 set "FASTBOOT=!BIN_DIR!\fastboot.exe"
 set "FLASHBASE=!BASE_DIR!\一键刷入工具.bat"
+set "CUSTOMBASE=!BIN_DIR!\bambu_lab.zip"
+set "CUSTOM_BAMBU_URL=https://gh-proxy.com/github.com/greghesp/ha-bambulab/releases/download/v2.2.10/bambu_lab.zip"
+set "CUSTOM_XIAOMI_URL=https://gh-proxy.com/https://github.com/XiaoMi/ha_xiaomi_home/releases/download/v0.4.3/xiaomi_home.zip"
+set "CUSTOM_XIAOMI_NAME=xiaomi_home.zip"
+set "CUSTOM_BAMBU_NAME=bambu_lab.zip"
 
 
 :: ########## 检查必要文件是否存在 ##########
@@ -44,6 +49,23 @@ if not exist "!IMG_DIR!" (
     echo 3秒后继续...
     timeout /t 3 /nobreak >nul
 )
+if not exist "!CUSTOMBASE!" (
+    echo 未找到集成压缩包！
+    echo 正在尝试下载...
+    powershell -Command "try { (New-Object System.Net.WebClient).DownloadFile('!CUSTOM_XIAOMI_URL!', '!BIN_DIR!\!CUSTOM_XIAOMI_NAME!') } catch { Write-Host 'DOWNLOAD_FAILED'; exit 1 }"
+    powershell -Command "try { (New-Object System.Net.WebClient).DownloadFile('!CUSTOM_BAMBU_URL!', '!BIN_DIR!\!CUSTOM_BAMBU_NAME!') } catch { Write-Host 'DOWNLOAD_FAILED'; exit 1 }"
+    if errorlevel 1 (
+        echo.
+        echo [!] 错误：下载文件失败。请检查您的网络连接或手动下载。
+        echo 小米集成下载链接:!CUSTOM_XIAOMI_URL!
+        echo 拓竹集成下载链接:!CUSTOM_BAMBU_URL!
+        pause
+        goto main
+    )
+    echo 已自动下载，3秒后继续...
+    timeout /t 3 /nobreak >nul
+)
+
 
 :: ########## 跳转到更新检查 ##########
 goto CheckForUpdates
@@ -434,8 +456,7 @@ goto :eof
 echo 正在推送压缩包...
 !ADB! shell "mkdir -p /root/.homeassistant/custom_components/bambu_lab" > nul
 !ADB! shell "mkdir -p /root/.homeassistant/custom_components/xiaomi_home" > nul
-!ADB! push !BIN_DIR!\bambu_lab.zip /root/.homeassistant/custom_components/bambu_lab/ >nul
-!ADB! push !BIN_DIR!\xiaomi_home.zip /root/.homeassistant/custom_components/xiaomi_home/ >nul
+!ADB! push !BIN_DIR!\!CUSTOM_BAMBU_NAME! /root/.homeassistant/custom_components/bambu_lab/ >nul
 echo 推送完成！
 echo 正在解压...
 !ADB! shell "unzip -o -q /root/.homeassistant/custom_components/xiaomi_home/*"
