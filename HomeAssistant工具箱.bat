@@ -3,6 +3,9 @@
 reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
 setlocal enabledelayedexpansion
 
+:: ########## 获取当前时间 ###########
+
+
 :: ########## 版本号和更新配置 ##########
 set "version=v1.0.1"
 :: Gitee仓库的 "所有者/仓库名"
@@ -388,3 +391,10 @@ echo 输入错误！请重新尝试！
 set sure=n
 pause
 goto main
+
+:GetTime
+    setlocal
+    :: 假设 %date% 格式为 YYYY/MM/DD 或 YYYY-MM-DD，%time% 格式为 HH:MM:SS.ms
+    set "dt=%date:~2,2%-%date:~5,2%-%date:~8,2%-%time:~0,2%%time:~3,2%"
+    endlocal & set "%~1=!dt!"
+    goto :eof
