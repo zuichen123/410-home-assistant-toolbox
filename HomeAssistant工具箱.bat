@@ -7,7 +7,7 @@ setlocal enabledelayedexpansion
 
 
 :: ########## 版本号和更新配置 ##########
-set "version=v1.0.1"
+set "version=v1.0.2"
 :: Gitee仓库的 "所有者/仓库名"
 set "REPO=zuichen/410-home-assistant-toolbox"
 :: Gitee API地址
@@ -171,7 +171,7 @@ echo 本系统为MakeWorld@蓝白色的蓝白碗 的拓竹打印机配件项目打造，但是并不局限于此
 echo 关于手动安装HomeAssistant方法（适用于大部分linux设备）
 echo 请访问http://zuichen.top:2043
 echo 注意：410版号不同刷入方法也不同，不可选错
-echo 主意：此刷机包使用前需要先刷入debian底包
+echo 注意：此刷机包使用前需要先刷入debian底包
 echo 在使用此脚本前请先打开棒子的adb，打开方式并不统一
 echo 本工具箱开源地址:https://gitee.com/zuichen/410-home-assistant-toolbox
 echo ==================================================================================
