@@ -180,8 +180,9 @@ echo 2.获取ip
 echo 3.修改HomeAssistant密码
 echo 4.创建HomeAssistant账号
 echo 5.查看HomeAssistant账号
-echo 6.重启HomeAssistant
-echo 7.高级功能(一般情况不用进)
+echo 6.获取HomeAssistant日志
+echo 7.重启HomeAssistant
+echo 8.高级功能(一般情况不用进)
 
 set /p "choice=请输入对应数字:"
 if "!choice!"=="1" goto connectwifi
@@ -189,8 +190,9 @@ if "!choice!"=="2" goto getip
 if "!choice!"=="3" goto changeaccount
 if "!choice!"=="4" goto creataccount
 if "!choice!"=="5" goto listaccount
-if "!choice!"=="6" goto restartha
-if "!choice!"=="7" goto flash
+if "!choice!"=="6" goto getlog
+if "!choice!"=="7" goto restartha
+if "!choice!"=="8" goto flash
 goto error
 
 :changeaccount
@@ -250,6 +252,13 @@ echo.
 echo 正在重启HomeAssistant...
 !ADB! shell "systemctl restart homeassistant"
 echo 重启完成!
+pause
+goto main
+
+:getlog
+echo 正在获取日志文件……
+!ADB! shell "systemctl status homeassistant -l" > log.txt
+echo 获取完成！日志已保存在脚本目录下的log.txt中！
 pause
 goto main
 
