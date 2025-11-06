@@ -3,8 +3,15 @@
 reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
 setlocal enabledelayedexpansion
 
+:: ########## 版本号和更新配置 ##########
+set "version=v1.0.1"
+:: Gitee仓库的 "所有者/仓库名"
+set "REPO=zuichen/410-home-assistant-toolbox"
+:: Gitee API地址
+set "REPO_API_URL=https://gitee.com/api/v5/repos/!REPO!/releases/latest"
+
+
 :: ########## 核心：获取脚本所在目录的绝对路径 ##########
-:: %~dp0 表示当前脚本所在目录的绝对路径（含末尾反斜杠）
 set "SCRIPT_DIR=%~dp0"
 :: 定义 bin 和 img 文件夹的绝对路径
 set "BIN_DIR=!SCRIPT_DIR!bin"
@@ -36,16 +43,125 @@ if not exist "!IMG_DIR!" (
     pause
     exit /b 1
 )
+
+:: ########## 跳转到更新检查 ##########
+goto CheckForUpdates
+
+
+:: ########## OTA 更新功能 开始 ##########
+:CheckForUpdates
+cls
+echo ==================================================================================
+echo.
+echo  正在检查更新，请稍候...
+echo.
+echo ==================================================================================
+
+:: 检查PowerShell是否存在
+where powershell >nul 2>nul
+if %errorlevel% neq 0 (
+    echo [!] 警告: 未找到 PowerShell，无法进行自动更新检查。
+    echo     请确保您的系统已安装 PowerShell 并将其添加至系统路径。
+	echo     3秒后将跳过更新检查...
+	timeout /t 3 /nobreak >nul
+    goto main
+)
+
+:: 使用 PowerShell 从 Gitee API 获取最新版本号
+set "LATEST_VERSION="
+for /f "delims=" %%i in ('powershell -Command "$ErrorActionPreference = 'SilentlyContinue'; try { (Invoke-RestMethod -Uri '!REPO_API_URL!').tag_name } catch { Write-Output 'error' }"') do set "LATEST_VERSION=%%i"
+
+:: 处理网络或API错误
+if "!LATEST_VERSION!"=="error" (
+    echo [!] 无法连接到 Gitee API 或获取版本信息，已跳过更新检查。
+	echo     可能是网络问题或仓库没有发布任何release。
+	echo     3秒后将继续...
+	timeout /t 3 /nobreak >nul
+    goto main
+)
+if "!LATEST_VERSION!"=="" (
+    echo [!] 未在Gitee仓库中找到任何有效的发布版本，跳过更新检查。
+	echo     3秒后将继续...
+	timeout /t 3 /nobreak >nul
+    goto main
+)
+
+echo 当前版本: !version!
+echo 最新版本: !LATEST_VERSION!
+echo.
+
+:: 比较版本号
+if "!version!"=="!LATEST_VERSION!" (
+    echo 当前已是最新版本。
+	timeout /t 2 /nobreak >nul
+    goto main
+)
+
+echo 发现新版本 (!LATEST_VERSION!)，是否立即更新？
+set /p "update_choice=请输入 (y/n) 并回车: "
+if /i "!update_choice!" NEQ "y" (
+    echo 已取消更新，继续使用当前版本。
+	timeout /t 2 /nobreak >nul
+    goto main
+)
+
+goto DownloadAndUpdate
 goto main
 
 
+:DownloadAndUpdate
+echo ----------------------------------------------------------------------
+echo 正在准备更新，请不要关闭此窗口...
+
+:: 定义新旧脚本文件名
+set "BAT_NAME=%~nx0"
+set "TEMP_BAT_NAME=%BAT_NAME%.new"
+
+:: 使用 PowerShell 获取新版 .bat 文件的下载链接
+set "DOWNLOAD_URL="
+set "PS_COMMAND=(Invoke-RestMethod -Uri '!REPO_API_URL!').assets | Where-Object { $_.name.EndsWith('.bat') } | Select-Object -ExpandProperty browser_download_url"
+for /f "delims=" %%i in ('powershell -Command "!PS_COMMAND!"') do set "DOWNLOAD_URL=%%i"
+
+if "!DOWNLOAD_URL!"=="" (
+    echo [!] 错误：在最新版本中未找到以 .bat 结尾的文件。
+    echo 更新失败，请检查Gitee Release发布包中是否包含了工具箱的bat文件作为独立附件。
+    pause
+    goto main
+)
+
+echo 正在从以下地址下载新版本:
+echo !DOWNLOAD_URL!
+echo.
+
+:: 使用 PowerShell 下载新脚本
+powershell -Command "try { (New-Object System.Net.WebClient).DownloadFile('!DOWNLOAD_URL!', '!TEMP_BAT_NAME!') } catch { Write-Host 'DOWNLOAD_FAILED'; exit 1 }"
+if errorlevel 1 (
+    echo.
+    echo [!] 错误：下载文件失败。请检查您的网络连接或手动前往Gitee下载。
+    if exist "!TEMP_BAT_NAME!" del "!TEMP_BAT_NAME!"
+    pause
+    goto main
+)
+
+echo 下载完成。一个新窗口将弹出以完成更新并重启脚本...
+timeout /t 2 >nul
+
+:: ##########【终极解决方案】##########
+:: 启动一个完全独立的cmd进程来执行更新操作。
+:: 这可以100%保证当前脚本的锁已被释放。
+:: 指令链: 等待3秒 -> 替换文件 -> 重启新版脚本
+start "OTA Updater" /D "%~dp0" cmd.exe /c "echo 正在应用更新，请勿关闭此窗口... & ping 127.0.0.1 -n 4 > nul & move /Y "!TEMP_BAT_NAME!" "!BAT_NAME!" > nul & echo 更新完成，正在重启... & timeout /t 2 > nul & start "" "!BAT_NAME!""
+
+:: 立即退出当前脚本
+exit
+:: ########## OTA 更新功能 结束 ##########
 
 
 :: ########## 主菜单 ##########
 :main
 cls
 echo ==================================================================================
-echo 欢迎使用HomeAssistant工具箱！
+echo 欢迎使用HomeAssistant工具箱！ (当前版本: !version!)
 echo 本系统基于酷安@lkiuyu编译的debian13超频版，感谢大佬的付出
 echo 本系统为MakeWorld@蓝白色的蓝白碗 的拓竹打印机配件项目打造，但是并不局限于此使用场景
 echo 关于手动安装HomeAssistant方法（适用于大部分linux设备）
@@ -63,7 +179,8 @@ echo 2.获取ip
 echo 3.修改HomeAssistant密码
 echo 4.创建HomeAssistant账号
 echo 5.查看HomeAssistant账号
-echo 6.高级功能(一般情况不用进)
+echo 6.重启HomeAssistant
+echo 7.高级功能(一般情况不用进)
 
 set /p "choice=请输入对应数字:"
 if "!choice!"=="1" goto connectwifi
@@ -71,7 +188,8 @@ if "!choice!"=="2" goto getip
 if "!choice!"=="3" goto changeaccount
 if "!choice!"=="4" goto creataccount
 if "!choice!"=="5" goto listaccount
-if "!choice!"=="6" goto flash
+if "!choice!"=="6" goto restartha
+if "!choice!"=="7" goto flash
 goto error
 
 :changeaccount
@@ -104,9 +222,9 @@ echo 新的密码:!PASSWD!
 echo 确定创建吗？
 echo.
 set /p "sure=请输入(y/n):"
-if "%sure%" NEQ "y" goto main
+if /i "%sure%" NEQ "y" goto main
 set sure=n
-!ADB! shell "hass --script auth add !ACCOUNT! !PASSWD!
+!ADB! shell "hass --script auth add !ACCOUNT! !PASSWD!"
 echo.
 echo 成功创建新账号:!ACCOUNT!
 echo 新账号的密码:!PASSWD!
@@ -118,6 +236,19 @@ goto main
 :listaccount
 echo 正在获取账户名...
 !ADB! shell "hass --script auth list"
+pause
+goto main
+
+:restartha
+echo 确定重启吗？
+echo.
+set /p "sure=请输入(y/n):"
+if /i "%sure%" NEQ "y" goto main
+set sure=n
+echo.
+echo 正在重启HomeAssistant...
+!ADB! shell "systemctl restart homeassistant"
+echo 重启完成!
 pause
 goto main
 
@@ -161,7 +292,7 @@ if not exist "!BOOT_IMG!" (
 cls
 echo 你选择的是：!board!，确定要刷入吗？
 set /p "sure=请输入(y/n):"
-if "%sure%" NEQ "y" goto main
+if /i "%sure%" NEQ "y" goto main
 set sure=n
 goto flash_device
 
@@ -208,12 +339,15 @@ timeout /t 10 /nobreak >nul
 echo 等待设备上线...
 "!ADB!" wait-for-device devices
 echo 设备已上线
+echo 正在进行最后一步操作...
+"!ADB!" shell "resize2fs /dev/mmcblk0p14"
+echo 操作完成！
 
 :: 连接WiFi
 echo.
 echo 需要连接WiFi吗？
 set /p "sure=请输入:(y/n):"
-if "%sure%" NEQ "y" goto main
+if /i "%sure%" NEQ "y" goto main
 set sure=n
 goto connectwifi
 
@@ -225,7 +359,7 @@ set /p "PASSWD=请输入WIFI密码:"
 echo 确定吗？确定请按输入y，否则按其他键返回
 set /p "sure=确定吗？(y/n):"
 echo 正在连接...
-if "%sure%" NEQ "y" goto main
+if /i "%sure%" NEQ "y" goto main
 set sure=n
 "!ADB!" shell "nmcli dev wifi connect "%SSID%" password "%PASSWD%""
 
@@ -244,9 +378,3 @@ echo 输入错误！请重新尝试！
 set sure=n
 pause
 goto main
-
-
-
-
-
-endlocal
