@@ -368,7 +368,7 @@ set sure=n
 echo 尝试获取ip
 echo 设备IP是:
 echo.
-"!ADB!" shell "ifconfig | grep -Eo 'inet (192\.168(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){2})' | grep -Eo '192\.168[^ ]*' | grep -v '192.168.68.1'"
+adb shell "ifconfig | grep -oE 'inet [0-9\.]+' | grep -oE '[0-9\.]+' | grep -vE '^127\.0\.0\.1$|^192\.168\.68\.1$'"
 echo.
 echo 如果看到192.168开头的ip地址说明成功，如果没有按回车可以再尝试一次，获取到之后记下IP就可以关闭脚本了
 pause
