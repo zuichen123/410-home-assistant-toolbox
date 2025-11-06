@@ -10,11 +10,13 @@
 ## 安装
 
 1. 克隆仓库到本地：
+
    ```bash
    git clone https://gitee.com/zuichen/410-home-assistant-toolbox.git
    ```
 
 2. 进入项目目录：
+
    ```bash
    cd 410-home-assistant-toolbox
    ```
@@ -26,7 +28,7 @@
 ## 完整版本下载
 
    因gitee上传文件大小限制，无法上传完整版本，所以请从网盘下载完整版本
-   网盘链接:https://www.123865.com/s/9SMKVv-9eOk3
+   网盘链接:<https://www.123865.com/s/9SMKVv-9eOk3>
 
 ## 贡献
 

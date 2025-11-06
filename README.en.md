@@ -10,11 +10,13 @@ This is a toolbox containing various practical tools for daily development and s
 ## Installation
 
 1. Clone the repository locally:
+
    ```bash
    git clone https://gitee.com/zuichen/410-home-assistant-toolbox.git
    ```
 
 2. Navigate to the project directory:
+
    ```bash
    cd 410-home-assistant-toolbox
    ```
