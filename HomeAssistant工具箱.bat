@@ -210,7 +210,8 @@ echo 7.重启HomeAssistant
 echo 8.重置HomeAssistant
 echo 9.添加bambu_lab和xiaomi_home集成
 echo 10.一键修复
-echo 11.高级功能(一般情况不用进)
+echo 11.释放空间
+echo 12.高级功能(一般情况不用进)
 
 set /p "choice=请输入对应数字:"
 if "!choice!"=="1" goto connectwifi
@@ -223,7 +224,8 @@ if "!choice!"=="7" goto restartha
 if "!choice!"=="8" goto harecovery
 if "!choice!"=="9" goto pushcustom_main
 if "!choice!"=="10" goto fix
-if "!choice!"=="11" goto flash
+if "!choice!"=="11" goto clean_main
+if "!choice!"=="12" goto flash
 goto error
 
 :changeaccount
@@ -287,6 +289,7 @@ pause
 goto main
 
 :getlog
+cls
 echo 正在获取日志文件……
 !ADB! shell "systemctl status homeassistant -l" > log.txt
 echo 获取完成！日志已保存在脚本目录下的log.txt中！
@@ -317,7 +320,9 @@ call :fix
 goto main
 
 :fix
-echo 更新服务文件...
+cls
+call :clean
+echo [1] 更新服务文件...
 !ADB! shell "echo '[Unit]' > /etc/systemd/system/homeassistant.service"
 !ADB! shell "echo 'Description=Home Assistant Service' >> /etc/systemd/system/homeassistant.service"
 !ADB! shell "echo 'After=network.target' >> /etc/systemd/system/homeassistant.service"
@@ -334,20 +339,56 @@ echo 更新服务文件...
 !ADB! shell "echo '' >> /etc/systemd/system/homeassistant.service"
 !ADB! shell "echo '[Install]' >> /etc/systemd/system/homeassistant.service"
 !ADB! shell "echo 'WantedBy=multi-user.target' >> /etc/systemd/system/homeassistant.service"
-echo 服务文件写入完成，重新加载系统服务...
+echo [1] 服务文件写入完成，重新加载系统服务...
 !ADB! shell "systemctl daemon-reload"
-echo 为uv换源...
+echo [2] 为uv换源...
 !ADB! shell "mkdir -p /root/.config/uv/"
 !ADB! shell "echo '[[index]]' > /root/.config/uv/uv.toml"
 !ADB! shell "echo 'url = "https://mirrors.ustc.edu.cn/pypi/simple"' >> /root/.config/uv/uv.toml"
 !ADB! shell "echo 'default = true' >> /root/.config/uv/uv.toml"
 !ADB! shell "systemctl daemon-reload"
-echo 换源完成
-echo 修复已完成，正在自动重启HomeAssistant...
-!ADB! shell "systemctl restart homeassistant.service"
+echo [2] 换源完成
+echo [3] 创建swap...
+!ADB! shell "swapoff /swapfile" > nul
+!ADB! shell "rm -rf /swapfile" > nul
+!ADB! shell "dd if=/dev/zero of=/swapfile bs=1M count=100" > nul
+!ADB! shell "chmod 600 /swapfile" > nul
+!ADB! shell "mkswap /swapfile" > nul
+!ADB! shell "echo '/swapfile none swap sw,noatime 0 0' >> /etc/fstab" > nul
+echo [3] swap已创建
+echo 修复已完成，正在自动重启...
+!ADB! shell "reboot"
 echo 重启完成，3秒后返回主菜单
 timeout /t 3 /nobreak >nul
 goto main
+
+:clean_main
+call :clean
+echo 空间已释放，三秒后回到主菜单
+timeout /t 3 /nobreak >nul
+goto main
+
+:clean
+cls
+echo 开始清理...
+echo [1] 清理APT缓存...
+!ADB! shell "rm -rf /var/cache/apt/*"
+!ADB! shell "rm -rf /var/lib/apt/lists/*"
+!ADB! shell "apt purge" > nul
+!ADB! shell "apt clean" > nul
+echo [1] APT缓存清理完毕
+echo [2] 清理pip缓存...
+!ADB! shell "pip cache purge" > nul
+echo [2] pip缓存清理完毕
+echo [3] 清理日志...
+!ADB! shell "journalctl --vacuum-size=1M" > nul
+!ADB! shell "rm -rf /root/.homeassistant/home-assistant.log*" > nul
+!ADB! shell "find /var/log -name "*.log" -type f -mtime +0 -exec truncate -s 0 {} \;" > nul
+echo [3] 日志清理完成
+echo [4] 关闭不必要服务...
+!ADB! shell "systemctl disable exim4" > nul
+echo [4] 不必要服务已关闭
+exit /b 0
 
 :flash
 cls
