@@ -338,7 +338,9 @@ echo 服务文件写入完成，重新加载系统服务...
 !ADB! shell "systemctl daemon-reload"
 echo 为uv换源...
 !ADB! shell "mkdir -p /root/.config/uv/"
-!ADB! shell "echo -e "[[index]]\nurl = "https://mirrors.ustc.edu.cn/pypi/simple"\ndefault = true" > /root/.config/uv/uv.toml"
+!ADB! shell "echo '[[index]]' > /root/.config/uv/uv.toml"
+!ADB! shell "echo 'url = "https://mirrors.ustc.edu.cn/pypi/simple"' >> /root/.config/uv/uv.toml"
+!ADB! shell "echo 'default = true' >> /root/.config/uv/uv.toml"
 !ADB! shell "systemctl daemon-reload"
 echo 换源完成
 echo 修复已完成，正在自动重启HomeAssistant...
