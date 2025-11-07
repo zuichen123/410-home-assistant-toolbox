@@ -4,7 +4,7 @@ reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
 setlocal enabledelayedexpansion
 
 :: ########## 版本号和更新配置 ##########
-set "version=v1.0.2"
+set "version=v1.0.3"
 :: Gitee仓库的 "所有者/仓库名"
 set "REPO=zuichen/410-home-assistant-toolbox"
 :: Gitee API地址
@@ -509,7 +509,7 @@ echo.
 !ADB! shell "ifconfig | grep -oE 'inet [0-9\.]+' | grep -oE '[0-9\.]+' | grep -vE '^127\.0\.0\.1$|^192\.168\.68\.1$' | sed 's/.*/http:\/\/&:8123/'" | clip
 echo.
 echo 已尝试将正确HomeAssistant网址复制到剪贴板，在浏览器粘贴即可访问
-echo 如果看到ip地址说明成功，如果没有按可以多尝试几次
+echo 如果看到ip地址说明成功，如果没有看到可以多尝试几次
 pause
 goto main
 
