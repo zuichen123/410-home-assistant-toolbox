@@ -26,6 +26,7 @@ set "CUSTOM_BAMBU_URL=https://gh-proxy.com/github.com/greghesp/ha-bambulab/relea
 set "CUSTOM_XIAOMI_URL=https://gh-proxy.com/https://github.com/XiaoMi/ha_xiaomi_home/releases/download/v0.4.3/xiaomi_home.zip"
 set "CUSTOM_XIAOMI_NAME=xiaomi_home.zip"
 set "CUSTOM_BAMBU_NAME=bambu_lab.zip"
+set "UV_URL="https://mirrors.ustc.edu.cn/pypi/simple""
 
 
 :: ########## 检查必要文件是否存在 ##########
@@ -344,7 +345,7 @@ echo [1] 服务文件写入完成，重新加载系统服务...
 echo [2] 为uv换源...
 !ADB! shell "mkdir -p /root/.config/uv/"
 !ADB! shell "echo '[[index]]' > /root/.config/uv/uv.toml"
-!ADB! shell "echo 'url = "https://mirrors.ustc.edu.cn/pypi/simple"' >> /root/.config/uv/uv.toml"
+!ADB! shell "echo 'url = !UV_URL!' >> /root/.config/uv/uv.toml"
 !ADB! shell "echo 'default = true' >> /root/.config/uv/uv.toml"
 !ADB! shell "systemctl daemon-reload"
 echo [2] 换源完成
