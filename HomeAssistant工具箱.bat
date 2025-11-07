@@ -312,10 +312,8 @@ echo.
 echo 正在重置...
 !ADB! shell "rm -rf /root/.homeassistant"
 call :pushcustom
-echo 已重置！已无法复原！正在重启HomeAssistant...
-!ADB! shell "systemctl restart homeassistant"
-echo HomeAssistant已重启！请等待数分钟后重新进入HomeAssistant网页端！
-pause
+echo 已重置！已无法复原！正在修复HomeAssistant...
+call :fix
 goto main
 
 :fix
@@ -468,7 +466,7 @@ echo.
 !ADB! shell "ifconfig | grep -oE 'inet [0-9\.]+' | grep -oE '[0-9\.]+' | grep -vE '^127\.0\.0\.1$|^192\.168\.68\.1$' | sed 's/.*/http:\/\/&:8123/'" | clip
 echo.
 echo 已尝试将正确HomeAssistant网址复制到剪贴板，在浏览器粘贴即可访问
-echo 如果看到ip地址说明成功，如果没有按回车可以再尝试一次，获取到之后记下IP就可以关闭脚本了
+echo 如果看到ip地址说明成功，如果没有按可以多尝试几次
 pause
 goto main
 
