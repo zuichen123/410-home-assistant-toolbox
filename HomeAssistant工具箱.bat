@@ -209,7 +209,8 @@ echo 6.获取HomeAssistant日志
 echo 7.重启HomeAssistant
 echo 8.重置HomeAssistant
 echo 9.添加bambu_lab和xiaomi_home集成
-echo 10.高级功能(一般情况不用进)
+echo 10.一键修复
+echo 11.高级功能(一般情况不用进)
 
 set /p "choice=请输入对应数字:"
 if "!choice!"=="1" goto connectwifi
@@ -221,7 +222,8 @@ if "!choice!"=="6" goto getlog
 if "!choice!"=="7" goto restartha
 if "!choice!"=="8" goto harecovery
 if "!choice!"=="9" goto pushcustom_main
-if "!choice!"=="10" goto flash
+if "!choice!"=="10" goto fix
+if "!choice!"=="11" goto flash
 goto error
 
 :changeaccount
@@ -314,6 +316,37 @@ echo 已重置！已无法复原！正在重启HomeAssistant...
 !ADB! shell "systemctl restart homeassistant"
 echo HomeAssistant已重启！请等待数分钟后重新进入HomeAssistant网页端！
 pause
+goto main
+
+:fix
+echo 更新服务文件...
+!ADB! shell "echo '[Unit]' > /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo 'Description=Home Assistant Service' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo 'After=network.target' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo '' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo '[Service]' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo 'Type=simple' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo 'User=root' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo 'WorkingDirectory=/root/.homeassistant' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo 'ExecStartPre=/bin/sleep 60' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo 'ExecStart=/usr/local/bin/hass' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo 'Restart=always' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo 'RestartSec=5' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo 'KillMode=process' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo '' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo '[Install]' >> /etc/systemd/system/homeassistant.service"
+!ADB! shell "echo 'WantedBy=multi-user.target' >> /etc/systemd/system/homeassistant.service"
+echo 服务文件写入完成，重新加载系统服务...
+!ADB! shell "systemctl daemon-reload"
+echo 为uv换源...
+!ADB! shell "mkdir -p /root/.config/uv/"
+!ADB! shell "echo -e "[[index]]\nurl = "https://mirrors.ustc.edu.cn/pypi/simple"\ndefault = true" > /root/.config/uv/uv.toml"
+!ADB! shell "systemctl daemon-reload"
+echo 换源完成
+echo 修复已完成，正在自动重启HomeAssistant...
+!ADB! shell "systemctl restart homeassistant.service"
+echo 重启完成，3秒后返回主菜单
+timeout /t 3 /nobreak >nul
 goto main
 
 :flash
