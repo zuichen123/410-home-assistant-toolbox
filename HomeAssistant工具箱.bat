@@ -201,13 +201,12 @@ exit
 cls
 echo ==================================================================================
 echo 欢迎使用HomeAssistant工具箱！ (当前版本: !version!)
+echo 作者:bilibili@东方罪尘
 echo 本系统基于酷安@lkiuyu编译的debian13超频版，感谢大佬的付出
 echo 本系统为MakeWorld@蓝白色的蓝白碗 的拓竹打印机配件项目打造，但是并不局限于此使用场景
 echo 关于手动安装HomeAssistant方法（适用于大部分linux设备）
 echo 请访问http://zuichen.top:2043
-echo 注意：410版号不同刷入方法也不同，不可选错
-echo 注意：此刷机包使用前需要先刷入debian底包
-echo 在使用此脚本前请先打开棒子的adb，打开方式并不统一
+echo 在使用此脚本前请确保棒子的ADB运行正常并且插入电脑
 echo 本工具箱开源地址:https://gitee.com/zuichen/410-home-assistant-toolbox
 echo ==================================================================================
 echo.
