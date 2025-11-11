@@ -131,7 +131,7 @@ echo.
 :: 比较版本号
 if "!version!"=="!LATEST_VERSION!" (
     call :log "当前已是最新版本。"
-	timeout /t 2 /nobreak >nul
+::	timeout /t 2 /nobreak >nul
     goto main
 )
 
