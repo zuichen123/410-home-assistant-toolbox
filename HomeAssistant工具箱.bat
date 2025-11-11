@@ -2,7 +2,7 @@
 @title HomeAssistant工具箱 by:zuichen
 reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
 setlocal enabledelayedexpansion
-
+@echo off
 :: ########## 版本号和更新配置 ##########
 set "version=v1.0.4"
 :: Gitee仓库的 "所有者/仓库名"
@@ -530,9 +530,9 @@ if /i "%sure%" NEQ "y" goto main
 set sure=n
 call :log "正在连接WiFi [!SSID!]..."
 "!ADB!" shell "nmcli dev wifi connect '!SSID!' password '!PASSWD!'" >> "!LOG_FILE!" 2>&1
-echo 连接命令已发送，请稍后获取IP。
-pause
-goto main
+:: echo 连接命令已发送，请稍后获取IP。
+:: pause
+:: goto main
 
 :getip
 call :log "尝试获取ip..."
