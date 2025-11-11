@@ -2,7 +2,6 @@
 @title HomeAssistant工具箱 by:zuichen
 reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
 setlocal enabledelayedexpansion
-@echo off
 :: ########## 版本号和更新配置 ##########
 set "version=v1.0.4"
 :: Gitee仓库的 "所有者/仓库名"
@@ -414,6 +413,9 @@ call :log "[3] 日志清理完成"
 call :log "[4] 关闭不必要服务..."
 !ADB! shell "systemctl disable exim4" >> "!LOG_FILE!" 2>&1
 call :log "[4] 不必要服务已关闭"
+call :log "[5] 扩容硬盘..."
+"!ADB!" shell "resize2fs /dev/mmcblk0p14" >> "!LOG_FILE!" 2>&1
+call :log "[5] 硬盘扩容完毕"
 exit /b 0
 
 :flash
