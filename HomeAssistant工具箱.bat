@@ -4,7 +4,7 @@ reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f >nul 2>&1
 setlocal enabledelayedexpansion
 
 :: ########## 版本号和更新配置 ##########
-set "version=v1.0.4-log"
+set "version=v1.0.4"
 :: Gitee仓库的 "所有者/仓库名"
 set "REPO=zuichen/410-home-assistant-toolbox"
 :: Gitee API地址
