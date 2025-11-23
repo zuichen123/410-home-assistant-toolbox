@@ -425,6 +425,13 @@ call :log "[4] 不必要服务已关闭"
 call :log "[5] 扩容硬盘..."
 "!ADB!" shell "resize2fs /dev/mmcblk0p14" >> "!LOG_FILE!" 2>&1
 call :log "[5] 硬盘扩容完毕"
+call :log "[6] 增加zram..."
+!ADB! shell "echo [zram0] > /etc/systemd/zram-generator.conf"
+!ADB! shell "echo zram-size = 512 >> /etc/systemd/zram-generator.conf"
+!ADB! shell "echo vm.swappiness = 90 >> /etc/sysctl.conf"
+!ADB! shell "systemctl daemon-reload"
+!ADB! shell "systemctl restart systemd-zram-setup@zram0.service"
+call :log "[6] zram成功增加至512M"
 exit /b 0
 
 :flash
