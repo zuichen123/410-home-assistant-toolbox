@@ -24,7 +24,7 @@ set "CUSTOM_BAMBU_URL=https://gh-proxy.com/github.com/greghesp/ha-bambulab/relea
 set "CUSTOM_XIAOMI_URL=https://gh-proxy.com/https://github.com/XiaoMi/ha_xiaomi_home/releases/download/v0.4.3/xiaomi_home.zip"
 set "CUSTOM_XIAOMI_NAME=xiaomi_home.zip"
 set "CUSTOM_BAMBU_NAME=bambu_lab.zip"
-set "UV_URL="https://mirrors.ustc.edu.cn/pypi/simple""
+set "UV_URL=\"https://mirrors.ustc.edu.cn/pypi/simple\""
 
 
 :: ########## 日志记录机制 ##########
@@ -398,6 +398,7 @@ goto main
 
 :clean_main
 call :clean
+!ADB! shell "reboot"
 call :log "空间已释放，三秒后回到主菜单"
 timeout /t 3 /nobreak >nul
 goto main
@@ -426,11 +427,11 @@ call :log "[5] 扩容硬盘..."
 "!ADB!" shell "resize2fs /dev/mmcblk0p14" >> "!LOG_FILE!" 2>&1
 call :log "[5] 硬盘扩容完毕"
 call :log "[6] 增加zram..."
-!ADB! shell "echo [zram0] > /etc/systemd/zram-generator.conf"
-!ADB! shell "echo zram-size = 512 >> /etc/systemd/zram-generator.conf"
-!ADB! shell "echo vm.swappiness = 90 >> /etc/sysctl.conf"
-!ADB! shell "systemctl daemon-reload"
-!ADB! shell "systemctl restart systemd-zram-setup@zram0.service"
+!ADB! shell "echo [zram0] > /etc/systemd/zram-generator.conf" >> "!LOG_FILE!" 2>&1
+!ADB! shell "echo zram-size = 512 >> /etc/systemd/zram-generator.conf" >> "!LOG_FILE!" 2>&1
+!ADB! shell "echo vm.swappiness = 90 >> /etc/sysctl.conf" >> "!LOG_FILE!" 2>&1
+!ADB! shell "systemctl daemon-reload" >> "!LOG_FILE!" 2>&1
+!ADB! shell "systemctl restart systemd-zram-setup@zram0.service" >> "!LOG_FILE!" 2>&1
 call :log "[6] zram成功增加至512M"
 exit /b 0
 
