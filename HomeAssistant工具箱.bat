@@ -372,14 +372,24 @@ call :log "[2] 为uv换源..."
 !ADB! shell "echo 'default = true' >> /root/.config/uv/uv.toml" >> "!LOG_FILE!" 2>&1
 !ADB! shell "systemctl daemon-reload" >> "!LOG_FILE!" 2>&1
 call :log "[2] 换源完成"
-call :log "[3] 创建swap..."
-!ADB! shell "swapoff /swapfile" >> "!LOG_FILE!" 2>&1
-!ADB! shell "rm -rf /swapfile" >> "!LOG_FILE!" 2>&1
-!ADB! shell "dd if=/dev/zero of=/swapfile bs=1M count=100" >> "!LOG_FILE!" 2>&1
-!ADB! shell "chmod 600 /swapfile" >> "!LOG_FILE!" 2>&1
-!ADB! shell "mkswap /swapfile" >> "!LOG_FILE!" 2>&1
-!ADB! shell "echo '/swapfile none swap sw,noatime 0 0' >> /etc/fstab" >> "!LOG_FILE!" 2>&1
-call :log "[3] swap已创建"
+call :log "[3] 增加zram..."
+!ADB! shell "echo [zram0] > /etc/systemd/zram-generator.conf"
+!ADB! shell "echo zram-size = 512 >> /etc/systemd/zram-generator.conf"
+!ADB! shell "echo vm.swappiness = 90 >> /etc/sysctl.conf"
+!ADB! shell "systemctl daemon-reload"
+!ADB! shell "systemctl restart systemd-zram-setup@zram0.service"
+call :log "[3] zram成功增加至512M"
+
+:: 旧版本方案，现已用zram方案替代
+::call :log "[3] 创建swap..."
+::!ADB! shell "swapoff /swapfile" >> "!LOG_FILE!" 2>&1
+::!ADB! shell "rm -rf /swapfile" >> "!LOG_FILE!" 2>&1
+::!ADB! shell "dd if=/dev/zero of=/swapfile bs=1M count=100" >> "!LOG_FILE!" 2>&1
+::!ADB! shell "chmod 600 /swapfile" >> "!LOG_FILE!" 2>&1
+::!ADB! shell "mkswap /swapfile" >> "!LOG_FILE!" 2>&1
+::!ADB! shell "echo '/swapfile none swap sw,noatime 0 0' >> /etc/fstab" >> "!LOG_FILE!" 2>&1
+::call :log "[3] swap已创建"
+
 call :log "修复已完成，正在自动重启..."
 !ADB! shell "reboot" >> "!LOG_FILE!" 2>&1
 call :log "重启命令已发送，3秒后返回主菜单"
