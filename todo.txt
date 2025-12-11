@@ -4,3 +4,18 @@
 2.下载脚本适配
   经测试集成下载部分在win10部分版本上运行不正确，要想办法兼容
   或许可以直接用c写个ota程序？
+
+3.盒子的ssl证书相关问题
+  现阶段解决方案：
+  修改/root/.homeassistant/custom_components/bambu/pybambu/bambu_client.py中
+    def local_tls_context(self):
+        if self._disable_ssl_verify:
+            return create_insecure_ssl_context()
+        else:
+            return create_local_ssl_context()
+为
+    def local_tls_context(self):
+        if self._disable_ssl_verify:
+            return create_insecure_ssl_context()
+        else:
+            return create_insecure_ssl_context()

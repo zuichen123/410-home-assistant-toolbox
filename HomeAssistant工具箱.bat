@@ -464,7 +464,7 @@ if "!choice!"=="8" goto flashbase
 set "choice="
 
 :: 检查当前板号的boot镜像是否存在
-set "BOOT_IMG=!IMG_DIR!\boot-!board!.img"
+set "BOOT_IMG=!IMG_DIR!\boot-!board!-n-gps-modem.img"
 if not exist "!BOOT_IMG!" (
     call :log "[!] 错误：未找到 !board! 对应的boot镜像，路径：!BOOT_IMG!"
     pause
