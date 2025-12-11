@@ -24,6 +24,9 @@ set "CUSTOM_BAMBU_URL=https://gh-proxy.com/github.com/greghesp/ha-bambulab/relea
 set "CUSTOM_XIAOMI_URL=https://gh-proxy.com/https://github.com/XiaoMi/ha_xiaomi_home/releases/download/v0.4.3/xiaomi_home.zip"
 set "CUSTOM_XIAOMI_NAME=xiaomi_home.zip"
 set "CUSTOM_BAMBU_NAME=bambu_lab.zip"
+set "FREE_KENERL_PACKAGES1=free_kenerl1.deb"
+set "FREE_KENERL_PACKAGES2=free_kenerl2.deb"
+set "FREE_KENERL_PACKAGES3=free_kenerl3.deb"
 set "UV_URL=\"https://mirrors.ustc.edu.cn/pypi/simple\""
 
 
@@ -224,7 +227,8 @@ echo 8.重置HomeAssistant
 echo 9.添加bambu_lab和xiaomi_home集成
 echo 10.一键修复
 echo 11.释放空间
-echo 12.高级功能(一般情况不用进)
+echo 12.升级为释放内存内核
+echo 13.高级功能(一般情况不用进)
 
 set "choice="
 set /p "choice=请输入对应数字:"
@@ -241,6 +245,7 @@ if "!choice!"=="8" goto harecovery
 if "!choice!"=="9" goto pushcustom_main
 if "!choice!"=="10" goto fix
 if "!choice!"=="11" goto clean_main
+if "!choice!"=="12" goto free_kenerl
 if "!choice!"=="12" goto flash
 goto error
 
@@ -464,7 +469,7 @@ if "!choice!"=="8" goto flashbase
 set "choice="
 
 :: 检查当前板号的boot镜像是否存在
-set "BOOT_IMG=!IMG_DIR!\boot-!board!-n-gps-modem.img"
+set "BOOT_IMG=!IMG_DIR!\boot-!board!.img"
 if not exist "!BOOT_IMG!" (
     call :log "[!] 错误：未找到 !board! 对应的boot镜像，路径：!BOOT_IMG!"
     pause
@@ -589,3 +594,73 @@ exit /b 0
 :pushcustom_main
 call :pushcustom
 goto main
+
+:free_kenerl
+cls
+echo 请选择你的板号:
+echo 1. ufi003
+echo 2. jz02v10
+echo 3. sp970
+echo 4. ufi001b
+echo 5. ufi001c
+echo 6. uz801
+echo 7. wf2
+
+echo.
+set "choice="
+set /p "choice=输入对应数字:"
+echo [USER_INPUT] 用户选择: !choice! >> "!LOG_FILE!"
+
+:: 根据选择设置板号和对应的boot镜像
+if "!choice!"=="1" set "board=ufi001c"
+if "!choice!"=="2" set "board=jz02v10"
+if "!choice!"=="3" set "board=sp970"
+if "!choice!"=="4" set "board=ufi001b"
+if "!choice!"=="5" set "board=ufi001c"
+if "!choice!"=="6" set "board=uz801"
+if "!choice!"=="7" set "board=wf2"
+set "choice="
+
+:: 检查当前板号的boot镜像是否存在
+set "BOOT_IMG=!IMG_DIR!\boot-!board!-n-gps-modem.img"
+if not exist "!BOOT_IMG!" (
+    call :log "[!] 错误：未找到 !board! 对应的boot镜像，路径：!BOOT_IMG!"
+    pause
+    goto main
+)
+
+:: 确认选择
+cls
+echo 你选择的是：!board!，确定要刷入吗？
+set /p "sure=请输入(y/n):"
+echo [USER_INPUT] 用户选择: !sure! >> "!LOG_FILE!"
+if /i "%sure%" NEQ "y" goto main
+set sure=n
+call :log "准备执行更新内核脚本..."
+cls
+call :log "正在推送内核更新软件包..."
+!ADB! shell "mkdir -p /root/kenerl_update/"
+!ADB! push !BIN_DIR!\!FREE_KENERL_PACKAGES1! /root/kenerl_update/free_kenerl1.deb >> "!LOG_FILE!" 2>&1
+!ADB! push !BIN_DIR!\!FREE_KENERL_PACKAGES2! /root/kenerl_update/free_kenerl2.deb >> "!LOG_FILE!" 2>&1
+!ADB! push !BIN_DIR!\!FREE_KENERL_PACKAGES3! /root/kenerl_update/free_kenerl3.deb >> "!LOG_FILE!" 2>&1
+call :log "正在安装全部软件包..."
+!ADB! shell "dpkg -i /root/kenerl_update/*" >> "!LOG_FILE!" 2>&1
+call :log "安装完成"
+call :log "正在重启设备进入fastboot模式..."
+"!ADB!" reboot bootloader >> "!LOG_FILE!" 2>&1
+call :log "等待设备进入fastboot模式（5秒）..."
+timeout /t 5 /nobreak >nul
+call :log "正在刷入 boot-!board!-n-gps-modem.img..."
+"!FASTBOOT!" flash boot "!BOOT_IMG!" >> "!LOG_FILE!" 2>&1
+call :log "刷入完成，正在重启系统..."
+!FASTBOOT! reboot >> "!LOG_FILE!" 2>&1
+call :log "重启完成，等待上线..."
+!ADB! wait-for-device 2>&1
+call :log "重启完成，更新内核成功！"
+call :log "正在清理无用文件..."
+!ADB! shell "rm -r /root/kenerl_update"
+call :log "清理完成"
+call :log "三秒后回到主界面"
+timeout /t 3 /nobreak >nul
+goto main
+
