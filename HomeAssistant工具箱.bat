@@ -246,7 +246,7 @@ if "!choice!"=="9" goto pushcustom_main
 if "!choice!"=="10" goto fix
 if "!choice!"=="11" goto clean_main
 if "!choice!"=="12" goto free_kenerl
-if "!choice!"=="12" goto flash
+if "!choice!"=="13" goto flash
 goto error
 
 :changeaccount
